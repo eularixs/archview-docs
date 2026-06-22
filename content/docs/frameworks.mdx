@@ -90,6 +90,19 @@ Detects the generated `New<Svc>Handler(impl)` constructor (returns
 service handler interface becomes an endpoint — so a Connect service shows up
 even though it doesn't use grpc-go's `Register…Server`.
 
+## gorilla/mux
+
+gorilla uses `r.HandleFunc("/path", handler)` with the method on a chained
+`.Methods("GET")` rather than `r.GET(...)`, so it has its own extractor. Without
+`.Methods` the route is `ANY`.
+
+## WebSocket
+
+A route handler that performs a WebSocket upgrade — gorilla/websocket `Upgrade`,
+coder/nhooyr `Accept` — is labeled **WS** instead of its HTTP method. The
+connection entry is shown; per-message routing after the upgrade is dynamic
+(runtime dispatch) and isn't traced.
+
 ## Adding a framework
 
 Implement the `Extractor` interface and pass it via `Options.Extractors`:
