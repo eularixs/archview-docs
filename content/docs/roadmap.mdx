@@ -1,41 +1,39 @@
 ---
 title: Roadmap
-description: What's planned beyond v0.1.
+description: What's shipped and what's planned.
 ---
 
-## Shipped since v0.1
+## Shipped
 
-- **Outbound ports** — the hexagonal seam as a node ([`ShowPorts`](/docs/ports)).
-- **Bus detection** — precise CQRS / event routing ([`DetectBuses`](/docs/buses)).
-- **gRPC extractor** — RPC methods as endpoints.
+- **Frameworks** — generic router extractor (gin, echo, fiber, chi, httprouter, …),
+  net/http, gorilla/mux, gRPC, GraphQL (gqlgen), ConnectRPC, WebSocket entry.
+- **Auto-layer** — chain-based, naming-agnostic layer inference
+  ([`AutoLayer`](/docs/auto-layer), on by default).
+- **Outbound ports** ([`ShowPorts`](/docs/ports)) and **bus / mediator detection**
+  ([`DetectBuses`](/docs/buses)).
+- **Layer-violation linter** ([`LintLayers`](/docs/linting)).
+- **Layout persistence** — dragged positions and collapsed modules survive a
+  reload (with a Reset button).
+- Quality: trivial-helper filtering, route group-prefix joining, generated-file
+  skipping (`.pb.go`, sqlc, …), layer-first module grouping.
 
-## Next — depth & guardrails
+## Planned
 
-- **Outbound / external dependency detection** — surface what a repository
-  actually talks to (Postgres, an HTTP API, Redis, a queue) as its own node.
-- **Layer-violation linter** — flag arch smells: a controller calling a
-  repository directly, a reversed dependency, a cross-module leak.
-- **Trivial-helper filter** — keep free-function helpers out of the graph.
-- **Join prefix paths** — `/api` + `/users` → `/api/users`.
+- **Outbound / external detection** — surface what a repository actually talks
+  to (Postgres, an HTTP API, Redis, a queue) as its own node.
+- **Search & filter** — find a node; toggle layers / modules.
+- **Trace a path** — click an endpoint to highlight its full downstream chain.
+- **Live reload** — re-analyze on source change.
+- **Reach** — GraphQL nested resolvers, WebSocket per-message routing, more
+  routers.
+- **Prod-baked** mode (`go:generate` + `go:embed`) to run inside a deployed
+  binary; export to PNG / SVG / Mermaid / DOT; JetBrains editor links.
 
-## Next — reach
+## Beyond Go
 
-- GraphQL and WebSocket extractors; echo / fiber / chi adapters.
-
-## Next — UX
-
-- Search and per-layer / per-module filtering.
-- Click an endpoint to highlight its full downstream path.
-- Persist your layout (dragged positions, collapsed modules).
-- Live reload on source change.
-
-## Later
-
-- Prod-baked mode (`go:generate` + `go:embed`) to run inside a deployed binary.
-- Export to PNG / SVG / Mermaid / DOT.
-- JetBrains editor links.
+- **archview-net** — a .NET port (Roslyn-based) sharing this UI, graph schema,
+  and docs. Planned as a separate library.
 
 <Callout>
-  Tracking lives in the repo under `docs/`. This page reflects the current
-  plan and will shift as things ship.
+  This page reflects the current plan and shifts as things ship.
 </Callout>
