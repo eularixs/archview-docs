@@ -5,11 +5,15 @@ description: Read the call chain instead of relying on package names.
 
 Keyword classification needs conventional package names. Plenty of real
 codebases don't follow them — especially microservices, where every service has
-its own conventions. With `AutoLayer: true`, archview ignores naming entirely
-and reads the **call chain**.
+its own conventions. So archview reads the **call chain** instead, and it does
+this **by default**.
 
 ```go
-av, _ := archview.New(archview.Options{ Root: ".", AutoLayer: true })
+// auto-layer is on by default
+av, _ := archview.New(archview.Options{ Root: "." })
+
+// opt out for the curated keyword-only view
+av, _ := archview.New(archview.Options{ Root: ".", DisableAutoLayer: true })
 ```
 
 ## How it infers
@@ -37,13 +41,15 @@ talking to the outside.
 - **Microservices.** Across services with different layouts, the same analysis
   reads where a request enters, what it flows through, and where it lands.
 
-Keyword classification still takes precedence where it applies, so you can mix
-both: lean on conventions where you have them, and let the chain cover the rest.
+Keyword classification still takes precedence where it applies, so well-named
+projects are unchanged — you can lean on conventions where you have them and let
+the chain cover the rest.
 
 <Callout>
-  AutoLayer is more inclusive — it shows the functions actually reached, which
-  may be more than the curated keyword-only view. Leave it off for the minimal
-  view; turn it on when naming doesn't match or you want the full flow.
+  Auto-layer is more inclusive — it shows the functions actually reached, which
+  may be more than the curated keyword-only view. Set `DisableAutoLayer: true`
+  for the minimal view. Bus detection runs first, so a `DetectBuses` graph is
+  unaffected.
 </Callout>
 
 See [Layer classification](/docs/layer-classification) for the keyword path and

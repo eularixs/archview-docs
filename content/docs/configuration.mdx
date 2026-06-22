@@ -23,8 +23,8 @@ type Options struct {
 	ShowPorts bool
 	// DetectBuses recovers command/query/event mediator routing.
 	DetectBuses bool
-	// AutoLayer infers layers from the call chain (naming-agnostic).
-	AutoLayer bool
+	// DisableAutoLayer turns off chain-based inference (on by default).
+	DisableAutoLayer bool
 	// ShowHelpers keeps unexported free-function helpers as nodes.
 	ShowHelpers bool
 }
@@ -39,7 +39,7 @@ type Options struct {
 | `Classify`    | built-ins        | Extend layer keywords. See [Layer classification](/docs/layer-classification). |
 | `ShowPorts`   | `false`          | Surface outbound ports. See [Ports](/docs/ports). |
 | `DetectBuses` | `false`          | Recover bus routing. See [Buses](/docs/buses). |
-| `AutoLayer`   | `false`          | Infer layers from the call chain. See [Auto-layer](/docs/auto-layer). |
+| `DisableAutoLayer` | `false`     | Auto-layer is on by default; set true for keyword-only. See [Auto-layer](/docs/auto-layer). |
 | `ShowHelpers` | `false`          | Keep trivial helper functions as nodes. |
 
 ## API
