@@ -1,5 +1,5 @@
 export const appName = 'archview';
-export const version = 'v0.3.2';
+export const version = 'v0.3.3';
 export const docsRoute = '/docs';
 export const docsImageRoute = '/og/docs';
 export const docsContentRoute = '/llms.mdx/docs';

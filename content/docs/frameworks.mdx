@@ -4,8 +4,8 @@ description: Route extraction per framework, and how to add your own.
 ---
 
 Each framework registers routes differently, so endpoint detection is delegated
-to per-framework **extractors**. The built-ins are net/http, gin, echo, gRPC and
-GraphQL; each runs automatically (an extractor only fires on a package that uses
+to per-framework **extractors**. The built-ins are net/http, gin, echo, gRPC, GraphQL and
+ConnectRPC; each runs automatically (an extractor only fires on a package that uses
 its framework).
 
 ## net/http
@@ -69,6 +69,13 @@ pb.RegisterOrderServiceServer(grpcServer, &OrderServer{...})
 The server impl lives in a package classified as controller (e.g.
 `adapter/grpc`), so the RPCs flow into your service and repository like any
 other entry point.
+
+## ConnectRPC
+
+Detects the generated `New<Svc>Handler(impl)` constructor (returns
+`(string, http.Handler)`) from `connectrpc.com/connect`. Each RPC method on the
+service handler interface becomes an endpoint — so a Connect service shows up
+even though it doesn't use grpc-go's `Register…Server`.
 
 ## Adding a framework
 
