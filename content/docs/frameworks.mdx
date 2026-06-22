@@ -28,6 +28,19 @@ api := r.Group("/api")
 api.GET("/users", userCtl.List)   // handler resolves to (*UserController).List
 ```
 
+## Any HTTP router
+
+Most Go routers share one shape — `router.GET/Get/POST/...("/path", handler)`.
+The generic router extractor matches it by the verb name, a string path, and a
+function-typed handler argument, **not** by the router's concrete type, so gin,
+echo, fiber, chi, httprouter and others are detected the same way. `Group("/api")`
+prefixes are joined onto routes.
+
+```go
+api := app.Group("/api")     // gin r.Group, echo e.Group, fiber app.Group
+api.Get("/users", h.List)    // -> endpoint /api/users
+```
+
 ## echo
 
 Detects `GET/POST/...` and `Any` on `*echo.Echo` / `*echo.Group`. The handler is
