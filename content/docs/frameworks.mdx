@@ -1,12 +1,66 @@
 ---
 title: Frameworks
-description: Route extraction per framework, and how to add your own.
+description: How to mount archview, and how routes are detected per framework.
 ---
 
-Each framework registers routes differently, so endpoint detection is delegated
-to per-framework **extractors**. The built-ins are net/http, gin, echo, gRPC, GraphQL and
-ConnectRPC; each runs automatically (an extractor only fires on a package that uses
+archview serves its UI on its own path (`/graph`). How you mount it depends on
+your framework; how it detects your routes is handled by per-framework
+**extractors** that run automatically (each fires only on a package that uses
 its framework).
+
+## Mounting archview
+
+`av.Handler()` is a standard `net/http.Handler`, so it drops into any router.
+archview also excludes its own routes from the graph, so `/graph` never shows up
+as an endpoint.
+
+```go title="net/http"
+mux := http.NewServeMux()
+av.Mount(mux)                 // serves /graph and /graph/data
+```
+
+```go title="gin"
+r.GET("/graph", gin.WrapH(av.Handler()))
+r.GET("/graph/data", gin.WrapH(av.Handler()))
+```
+
+```go title="echo"
+e.GET("/graph", echo.WrapHandler(av.Handler()))
+e.GET("/graph/data", echo.WrapHandler(av.Handler()))
+```
+
+```go title="fiber"
+import "github.com/gofiber/fiber/v2/middleware/adaptor"
+
+app.Get("/graph", adaptor.HTTPHandler(av.Handler()))
+app.Get("/graph/data", adaptor.HTTPHandler(av.Handler()))
+```
+
+```go title="chi / gorilla / any net/http router"
+r.Handle("/graph", av.Handler())
+r.Handle("/graph/data", av.Handler())
+```
+
+```go title="any framework — separate port"
+go func() {
+	m := http.NewServeMux()
+	av.Mount(m)
+	http.ListenAndServe(":9000", m)
+}()
+```
+
+## Any HTTP router (gin, echo, fiber, chi, httprouter, …)
+
+Most Go routers share one shape — `router.GET/Get/POST/...("/path", handler)`.
+The generic router extractor matches it by the verb method name, a string path,
+and a function-typed handler argument — **not** by the router's concrete type —
+so most frameworks work with no configuration. `Group("/api")` prefixes are
+joined onto routes.
+
+```go
+api := app.Group("/api")     // gin r.Group, echo e.Group, fiber app.Group
+api.Get("/users", h.List)    // -> endpoint /api/users
+```
 
 ## net/http
 
@@ -17,40 +71,27 @@ package-level `http.HandleFunc`. The Go 1.22+ method-prefixed pattern is parsed:
 mux.HandleFunc("GET /catalog/items", h.ListItems)   // method GET, path /catalog/items
 ```
 
-## gin
+## gorilla/mux
 
-Detects `GET/POST/PUT/DELETE/PATCH/HEAD/OPTIONS`, `Handle`, and `Any` on
-`*gin.Engine` / `*gin.RouterGroup`:
+gorilla uses `r.HandleFunc("/path", handler)` with the method on a chained
+`.Methods("GET")` rather than `r.GET(...)`, so it has its own extractor. Without
+`.Methods` the route is `ANY`.
 
 ```go
-r := gin.Default()
-api := r.Group("/api")
-api.GET("/users", userCtl.List)   // handler resolves to (*UserController).List
+r := mux.NewRouter()
+r.HandleFunc("/users", h.List).Methods("GET")   // -> GET /users
+r.HandleFunc("/ws", h.Stream)                    // -> WS /ws (see below)
 ```
 
-## Any HTTP router
+## gRPC
 
-Most Go routers share one shape — `router.GET/Get/POST/...("/path", handler)`.
-The generic router extractor matches it by the verb name, a string path, and a
-function-typed handler argument, **not** by the router's concrete type, so gin,
-echo, fiber, chi, httprouter and others are detected the same way. `Group("/api")`
-prefixes are joined onto routes.
+Detected structurally from the generated registration call — no import needed,
+so it works with real `google.golang.org/grpc` as-is. Each RPC method on the
+service interface becomes an endpoint bound to the implementing method:
 
 ```go
-api := app.Group("/api")     // gin r.Group, echo e.Group, fiber app.Group
-api.Get("/users", h.List)    // -> endpoint /api/users
-```
-
-## echo
-
-Detects `GET/POST/...` and `Any` on `*echo.Echo` / `*echo.Group`. The handler is
-the argument right after the path; `Group("/api")` prefixes are joined onto the
-route. Works with echo v3 and v4.
-
-```go
-e := echo.New()
-api := e.Group("/api")
-api.GET("/users", userCtl.List)   // endpoint /api/users
+pb.RegisterOrderServiceServer(grpcServer, &OrderServer{...})
+// endpoints: /OrderService/CreateOrder, /OrderService/GetOrder, ...
 ```
 
 ## GraphQL
@@ -65,23 +106,8 @@ type QueryResolver interface {
 }
 ```
 
-Structural detection — no import required, so it works with real gqlgen output.
-Only root resolvers for now; nested field resolvers are on the roadmap.
-
-## gRPC
-
-Detected structurally from the generated registration call — no import needed,
-so it works with real `google.golang.org/grpc` as-is. Each RPC method on the
-service interface becomes an endpoint bound to the implementing method:
-
-```go
-pb.RegisterOrderServiceServer(grpcServer, &OrderServer{...})
-// endpoints: /OrderService/CreateOrder, /OrderService/GetOrder, ...
-```
-
-The server impl lives in a package classified as controller (e.g.
-`adapter/grpc`), so the RPCs flow into your service and repository like any
-other entry point.
+Structural detection — no import required. Only root resolvers for now; nested
+field resolvers are on the roadmap.
 
 ## ConnectRPC
 
@@ -90,11 +116,10 @@ Detects the generated `New<Svc>Handler(impl)` constructor (returns
 service handler interface becomes an endpoint — so a Connect service shows up
 even though it doesn't use grpc-go's `Register…Server`.
 
-## gorilla/mux
-
-gorilla uses `r.HandleFunc("/path", handler)` with the method on a chained
-`.Methods("GET")` rather than `r.GET(...)`, so it has its own extractor. Without
-`.Methods` the route is `ANY`.
+```go
+path, handler := orderv1connect.NewOrderServiceHandler(srv)
+// endpoints: /OrderService/CreateOrder, ...
+```
 
 ## WebSocket
 
@@ -103,6 +128,10 @@ coder/nhooyr `Accept` — is labeled **WS** instead of its HTTP method. The
 connection entry is shown; per-message routing after the upgrade is dynamic
 (runtime dispatch) and isn't traced.
 
+```go
+r.HandleFunc("/ws", h.Stream)   // h.Stream calls upgrader.Upgrade -> WS /ws
+```
+
 ## Adding a framework
 
 Implement the `Extractor` interface and pass it via `Options.Extractors`:
@@ -110,19 +139,13 @@ Implement the `Extractor` interface and pass it via `Options.Extractors`:
 ```go
 type Extractor interface {
 	Name() string
-	Match(pkg *packages.Package) bool       // does this pkg import the framework?
+	Match(pkg *packages.Package) bool       // does this pkg use the framework?
 	Extract(pkg *packages.Package) []Route  // walk syntax, return routes
 }
 ```
 
 ```go
 av, _ := archview.New(archview.Options{
-	Extractors: []archview.Extractor{myEchoExtractor{}, /* + defaults */},
+	Extractors: append(route.Default(), myExtractor{}),
 })
 ```
-
-<Callout>
-  echo, fiber, chi, GraphQL and WebSocket adapters are on the
-  [roadmap](/docs/roadmap). The interface is already in place — contributions
-  welcome.
-</Callout>
