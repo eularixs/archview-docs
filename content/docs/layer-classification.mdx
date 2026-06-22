@@ -34,6 +34,17 @@ Skipped container segments include: `internal`, `app`, `pkg`, `cmd`, `modules`,
 `features`, `components`, `domain`, `adapter(s)`, `port(s)`, `inbound`,
 `outbound`, `infra(structure)`.
 
+## Module grouping
+
+The **module** (the swimlane a node sits in) is the bounded-context name:
+
+- **Feature-first** (`user/service`, `user/repository`) → the segment *before*
+  the layer keyword: `user`.
+- **Layer-first** (`core/user`, `handlers/user`, `interface/user`) → the segment
+  *after* it: `user`.
+
+Either way, related layers line up under one feature lane.
+
 ## Extending
 
 Add your own keywords without losing the defaults:
