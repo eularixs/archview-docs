@@ -1,0 +1,50 @@
+---
+title: Auto-layer
+description: Read the call chain instead of relying on package names.
+---
+
+Keyword classification needs conventional package names. Plenty of real
+codebases don't follow them — especially microservices, where every service has
+its own conventions. With `AutoLayer: true`, archview ignores naming entirely
+and reads the **call chain**.
+
+```go
+av, _ := archview.New(archview.Options{ Root: ".", AutoLayer: true })
+```
+
+## How it infers
+
+Starting from each detected endpoint, archview walks the call graph, includes
+every function actually reached, and infers a layer from each one's **role in
+the chain**:
+
+| Role in the chain | Inferred layer |
+|-------------------|----------------|
+| the entry (the endpoint's handler) | controller |
+| calls onward into the app | service |
+| a sink — only reaches external/leaf code | repository |
+
+So a function is a service because something **flows through it**, not because a
+folder is named `service`. A repository is whatever sits at the end of the chain
+talking to the outside.
+
+## Why this matters
+
+- **Any naming works.** `core/`, `adapter/postgresql`, `interface/`, or names
+  that follow no convention at all — the flow still reads correctly.
+- **No layer setup.** You don't annotate or configure anything; mount archview
+  and the chain is drawn from where calls actually go.
+- **Microservices.** Across services with different layouts, the same analysis
+  reads where a request enters, what it flows through, and where it lands.
+
+Keyword classification still takes precedence where it applies, so you can mix
+both: lean on conventions where you have them, and let the chain cover the rest.
+
+<Callout>
+  AutoLayer is more inclusive — it shows the functions actually reached, which
+  may be more than the curated keyword-only view. Leave it off for the minimal
+  view; turn it on when naming doesn't match or you want the full flow.
+</Callout>
+
+See [Layer classification](/docs/layer-classification) for the keyword path and
+[How it works](/docs/how-it-works) for the pipeline.

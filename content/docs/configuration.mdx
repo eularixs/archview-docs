@@ -14,7 +14,8 @@ type Options struct {
 	// Editor is the click-to-source scheme: "vscode" or "cursor".
 	// Defaults to "vscode".
 	Editor string
-	// Extractors overrides the route extractors. Defaults to gin + net/http + gRPC.
+	// Extractors overrides the route extractors.
+	// Defaults to net/http + gin + echo + gRPC + GraphQL.
 	Extractors []Extractor
 	// Classify optionally extends layer-classification keywords.
 	Classify *classify.Config
@@ -22,6 +23,10 @@ type Options struct {
 	ShowPorts bool
 	// DetectBuses recovers command/query/event mediator routing.
 	DetectBuses bool
+	// AutoLayer infers layers from the call chain (naming-agnostic).
+	AutoLayer bool
+	// ShowHelpers keeps unexported free-function helpers as nodes.
+	ShowHelpers bool
 }
 ```
 
@@ -30,10 +35,12 @@ type Options struct {
 | `Root`        | `"."`            | Directory of the module to analyze. |
 | `BasePath`    | `"/graph"`       | UI is served here; JSON at `{BasePath}/data`. |
 | `Editor`      | `"vscode"`       | `"vscode"` or `"cursor"`. |
-| `Extractors`  | gin, net/http, gRPC | Replace to add a framework. See [Frameworks](/docs/frameworks). |
+| `Extractors`  | net/http, gin, echo, gRPC, GraphQL | Replace to add a framework. See [Frameworks](/docs/frameworks). |
 | `Classify`    | built-ins        | Extend layer keywords. See [Layer classification](/docs/layer-classification). |
 | `ShowPorts`   | `false`          | Surface outbound ports. See [Ports](/docs/ports). |
 | `DetectBuses` | `false`          | Recover bus routing. See [Buses](/docs/buses). |
+| `AutoLayer`   | `false`          | Infer layers from the call chain. See [Auto-layer](/docs/auto-layer). |
+| `ShowHelpers` | `false`          | Keep trivial helper functions as nodes. |
 
 ## API
 
