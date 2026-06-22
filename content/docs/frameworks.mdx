@@ -14,40 +14,58 @@ its framework).
 archview also excludes its own routes from the graph, so `/graph` never shows up
 as an endpoint.
 
-```go title="net/http"
+<Tabs items={['net/http', 'gin', 'echo', 'fiber', 'chi / gorilla', 'separate port']}>
+
+<Tab value="net/http">
+```go
 mux := http.NewServeMux()
 av.Mount(mux)                 // serves /graph and /graph/data
 ```
+</Tab>
 
-```go title="gin"
+<Tab value="gin">
+```go
 r.GET("/graph", gin.WrapH(av.Handler()))
 r.GET("/graph/data", gin.WrapH(av.Handler()))
 ```
+</Tab>
 
-```go title="echo"
+<Tab value="echo">
+```go
 e.GET("/graph", echo.WrapHandler(av.Handler()))
 e.GET("/graph/data", echo.WrapHandler(av.Handler()))
 ```
+</Tab>
 
-```go title="fiber"
+<Tab value="fiber">
+```go
 import "github.com/gofiber/fiber/v2/middleware/adaptor"
 
 app.Get("/graph", adaptor.HTTPHandler(av.Handler()))
 app.Get("/graph/data", adaptor.HTTPHandler(av.Handler()))
 ```
+</Tab>
 
-```go title="chi / gorilla / any net/http router"
+<Tab value="chi / gorilla">
+```go
+// chi, gorilla/mux, or any net/http-compatible router
 r.Handle("/graph", av.Handler())
 r.Handle("/graph/data", av.Handler())
 ```
+</Tab>
 
-```go title="any framework — separate port"
+<Tab value="separate port">
+```go
+// works with any framework — run archview on its own port
 go func() {
 	m := http.NewServeMux()
 	av.Mount(m)
 	http.ListenAndServe(":9000", m)
 }()
 ```
+</Tab>
+
+</Tabs>
 
 ## Any HTTP router (gin, echo, fiber, chi, httprouter, …)
 
