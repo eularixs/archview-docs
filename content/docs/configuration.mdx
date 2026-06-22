@@ -25,6 +25,8 @@ type Options struct {
 	DetectBuses bool
 	// DisableAutoLayer turns off chain-based inference (on by default).
 	DisableAutoLayer bool
+	// LintLayers flags architecture smells on call edges.
+	LintLayers bool
 	// ShowHelpers keeps unexported free-function helpers as nodes.
 	ShowHelpers bool
 }
@@ -40,6 +42,7 @@ type Options struct {
 | `ShowPorts`   | `false`          | Surface outbound ports. See [Ports](/docs/ports). |
 | `DetectBuses` | `false`          | Recover bus routing. See [Buses](/docs/buses). |
 | `DisableAutoLayer` | `false`     | Auto-layer is on by default; set true for keyword-only. See [Auto-layer](/docs/auto-layer). |
+| `LintLayers` | `false`           | Flag reverse/skip/cross-module call edges. See [Layer linting](/docs/linting). |
 | `ShowHelpers` | `false`          | Keep trivial helper functions as nodes. |
 
 ## API

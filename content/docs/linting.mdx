@@ -1,0 +1,30 @@
+---
+title: Layer linting
+description: Flag architecture smells on the call edges.
+---
+
+archview already knows each function's layer and module, so it can flag calls
+that break the intended dependency direction. Turn it on with `LintLayers`:
+
+```go
+av, _ := archview.New(archview.Options{ Root: ".", LintLayers: true })
+```
+
+## What it flags
+
+| Smell | Meaning |
+|-------|---------|
+| **reverse dependency** | a call backward toward the entry — e.g. `repository → service`, `service → controller` |
+| **skip-layer** | a controller calling a repository directly, bypassing the service |
+| **cross-module** | a call into another module's internals |
+
+Flagged call edges render **red**, and the header shows a `⚠ N issues` count.
+
+## Notes
+
+- Linting only looks at **call** edges between classified layers; route, port and
+  dispatch edges are left alone.
+- It pairs well with [auto-layer](/docs/auto-layer): even on an unconventional
+  layout, layers are inferred from the chain first, then linted.
+- Cross-module is heuristic — some cross-module calls are legitimate (shared
+  code); treat it as a hint, not a hard rule.
