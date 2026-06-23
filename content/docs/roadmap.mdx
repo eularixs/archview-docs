@@ -1,9 +1,12 @@
 ---
 title: Roadmap
-description: What's shipped and what's planned.
+description: What's shipped and what's planned across the Arch Reactor suite.
 ---
 
-## Shipped
+Arch Reactor is two tools on one engine: **archview** (visualize) and
+**[arch-diff](/docs/arch-diff-overview)** (structural diff). Roadmap for each below.
+
+## archview — shipped
 
 - **Frameworks** — generic router extractor (gin, echo, fiber, chi, httprouter, …),
   net/http, gorilla/mux, gRPC, GraphQL (gqlgen), ConnectRPC, WebSocket entry.
@@ -17,7 +20,7 @@ description: What's shipped and what's planned.
 - Quality: trivial-helper filtering, route group-prefix joining, generated-file
   skipping (`.pb.go`, sqlc, …), layer-first module grouping.
 
-## Planned
+## archview — planned
 
 - **Outbound / external detection** — surface what a repository actually talks
   to (Postgres, an HTTP API, Redis, a queue) as its own node.
@@ -29,8 +32,33 @@ description: What's shipped and what's planned.
 - **Prod-baked** mode (`go:generate` + `go:embed`) to run inside a deployed
   binary; export to PNG / SVG / Mermaid / DOT; JetBrains editor links.
 
+## arch-diff — shipped (v0.1.0)
+
+- **Structural diff** across two git refs: new / removed **layer-crossing edges**,
+  **changed** (body hash), added / removed nodes — keyed by location-independent
+  IDs, so moving lines produces no diff.
+- **Dead-code, tied to the change** — **newly dead** (orphaned by the PR) and
+  **revived** (dead → reachable); plus a `--dead` full audit grouped by layer.
+- **Roots** from config: routes, `main`, `exported_api` (library mode), and a
+  `keep` allowlist for reflective entrypoints; ignore globs for test/mock/vendor.
+- **Mermaid** subgraph of the changed region, dead nodes styled distinctly.
+- **GitHub Action** — one PR comment, edited in place on each push.
+- **SHA cache** — the base branch graph is built once and reused.
+
+## arch-diff — planned
+
+- **Rename / move detection** — surface a moved symbol as one node instead of an
+  add + a remove (similarity matching).
+- **Path-to-sink** — flag a *new* path from an entrypoint to a sensitive sink
+  (not just boolean reachability).
+- **Policy gating** — an opt-in `arch-lint` mode that can fail a build (arch-diff
+  itself stays report-only).
+
 ## Beyond Go
 
+- **archview-hono** — a TypeScript / Hono port (ts-morph based) at parity with
+  the Go engine: Hono / Express / Fastify / Elysia / NestJS / tRPC, ports,
+  CQRS mediators, auto-layer, linter. Shares this UI and graph schema.
 - **archview-net** — a .NET port (Roslyn-based) sharing this UI, graph schema,
   and docs. Planned as a separate library.
 
