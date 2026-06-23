@@ -11,13 +11,17 @@ import { appName, siteDescription, siteUrl } from '@/lib/shared';
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: `${appName} — architecture flow graph for Go backends`,
+    default: `${appName} — structural tooling for Go backends`,
     template: `%s · ${appName}`,
   },
   description: siteDescription,
   applicationName: appName,
   keywords: [
+    'Arch Reactor',
     'archview',
+    'arch-diff',
+    'structural diff',
+    'dead code detection',
     'Go',
     'Golang',
     'architecture',
@@ -37,12 +41,12 @@ export const metadata: Metadata = {
     type: 'website',
     siteName: appName,
     url: siteUrl,
-    title: `${appName} — architecture flow graph for Go backends`,
+    title: `${appName} — structural tooling for Go backends`,
     description: siteDescription,
   },
   twitter: {
     card: 'summary_large_image',
-    title: `${appName} — architecture flow graph for Go backends`,
+    title: `${appName} — structural tooling for Go backends`,
     description: siteDescription,
   },
   robots: { index: true, follow: true },

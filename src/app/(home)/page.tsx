@@ -55,7 +55,7 @@ function Hero() {
               className="h-1.5 w-1.5 rounded-full"
               style={{ background: 'var(--av-service)' }}
             />
-            Go library · static analysis · {version}
+            Go tooling · static analysis · {version}
           </span>
 
           <h1
@@ -72,12 +72,17 @@ function Hero() {
             className="av-rise mt-6 max-w-lg text-lg text-fd-muted-foreground"
             style={{ animationDelay: '140ms' }}
           >
-            archview reads your Go source and renders the live path from{' '}
+            <strong className="font-semibold text-fd-foreground">Arch Reactor</strong>{' '}
+            is structural tooling for Go backends.{' '}
+            <strong className="font-semibold text-fd-foreground">archview</strong>{' '}
+            renders the live path from{' '}
             <Layer c="endpoint">endpoint</Layer> →{' '}
             <Layer c="controller">controller</Layer> →{' '}
             <Layer c="service">service</Layer> →{' '}
-            <Layer c="repository">repository</Layer>. No annotations. Click any
-            node to open it in your editor.
+            <Layer c="repository">repository</Layer>.{' '}
+            <strong className="font-semibold text-fd-foreground">arch-diff</strong>{' '}
+            shows how that structure changes across two git refs — and which code
+            a change orphans.
           </p>
 
           <div

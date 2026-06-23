@@ -1,11 +1,11 @@
 {
-  "title": "Documentation",
+  "title": "Arch Reactor",
   "root": true,
   "pages": [
     "index",
+    "---archview---",
     "quickstart",
     "installation",
-    "---Concepts---",
     "how-it-works",
     "layer-classification",
     "auto-layer",
@@ -13,12 +13,16 @@
     "ports",
     "buses",
     "frameworks",
-    "---Reference---",
     "configuration",
     "ui-guide",
     "linting",
     "examples",
     "limitations",
+    "---arch-diff---",
+    "arch-diff-overview",
+    "arch-diff-dead-code",
+    "arch-diff-usage",
+    "---Project---",
     "roadmap"
   ]
 }

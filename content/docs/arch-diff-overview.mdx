@@ -1,0 +1,61 @@
+---
+title: arch-diff
+description: Structural diff for Go backends — how the call-flow changes across two git refs, and what a change orphaned or revived.
+---
+
+A `git diff` shows which **lines** changed. It does not show whether the
+**structure** changed. The most review-critical regressions in a layered backend
+are structural and invisible in a text diff:
+
+- A handler that used to call a repo through a service now calls it directly.
+- A domain package gains a dependency on infra.
+- A refactor removes the last caller of a function, leaving it dead — fully
+  tested, compiling, and looking alive in the diff.
+
+**arch-diff** runs the archview engine on two git refs, runs a reachability pass
+on each, and diffs both the graph and the reachable-set. The result is a PR
+comment that shows architectural impact and dead code in seconds.
+
+<Callout title="Report-only">
+  arch-diff never fails your build. It reports; it does not gate. Policy
+  enforcement is a separate concern.
+</Callout>
+
+## What it surfaces
+
+In priority order:
+
+1. **Newly dead** — reachable in base, dead in head. Your PR orphaned it. The headline.
+2. **New layer-crossing edge** — e.g. `OrderHandler.Create → InventoryRepo.Decrement`, with the path it replaced.
+3. **Removed layer-crossing edge** — e.g. a service hop that disappeared.
+4. **Revived** — dead in base, reachable in head.
+5. **Changed** — body hash differs.
+6. **New / removed** nodes.
+
+## How it works
+
+1. `git worktree add` for each ref into an isolated temp dir.
+2. Load each worktree with the archview call-graph engine (raw, unpruned).
+3. Resolve roots (routes, `main`, optionally exported API) from config.
+4. Run reachability from roots, marking every node reachable or dead.
+5. Set-diff the two graphs, and separately diff the two reachable-sets.
+6. Render markdown plus a mermaid subgraph of the changed region.
+
+Graphs are deterministic per commit SHA, so each is cached by SHA; the base
+branch is computed once and reused.
+
+## Node identity
+
+Diff quality depends entirely on stable, location-independent node IDs. An ID is
+the **package path + receiver + method** — never file or line. Inserting a blank
+line above a function changes no ID, so only genuine structural change is visible.
+
+```
+github.com/x/eularix/internal/order/handler.(*OrderHandler).Create
+```
+
+<Callout type="warn" title="Status">
+  arch-diff is in active development (the archview engine and stable IDs are
+  done; reachability, dead-code deltas, and the GitHub Action are landing). See
+  the [roadmap](/docs/roadmap).
+</Callout>

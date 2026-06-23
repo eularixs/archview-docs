@@ -1,0 +1,52 @@
+---
+title: Usage
+description: CLI surface and configuration for arch-diff.
+---
+
+## CLI
+
+```bash
+arch-diff --base origin/main --head HEAD
+arch-diff --base <sha> --head <sha> --format markdown
+arch-diff --base origin/main --head HEAD --only-crossing   # layer-crossing only
+arch-diff --base origin/main --head HEAD --only-dead        # newly-dead only
+arch-diff --dead --head HEAD                                # full dead-code audit, no diff
+```
+
+`--base` defaults to the merge target branch. Exit code is always `0` — arch-diff
+reports, it does not gate.
+
+## Configuration
+
+Layers, roots, and ignore globs are resolved from `arch-diff.yaml`, reusing
+archview's layer rules where possible.
+
+```yaml
+layers:
+  handler:  "internal/**/handler"
+  service:  "internal/**/service"
+  repo:     "internal/**/repo"
+  domain:   "internal/domain/**"
+  infra:    "internal/infra/**"
+
+roots:
+  routes: true            # registered HTTP routes are roots
+  main:   true            # func main is a root
+  exported_api: false     # set true for library modules
+  keep:                   # allowlist for reflective/known entrypoints
+    - "internal/jobs/*.Register"
+
+ignore:
+  - "**/*_test.go"
+  - "**/mock_*.go"
+  - "vendor/**"
+```
+
+An edge is **layer-crossing** when its endpoints' layers differ. A node is
+**dead** when not reachable from any resolved root.
+
+## CI
+
+A GitHub Action posts the report as a PR comment and edits it in place on each
+new push, so there is one comment per PR. When there is no structural change and
+nothing was orphaned, the report is a single line.

@@ -1,0 +1,43 @@
+---
+title: Dead code
+description: Reachability-based dead-code detection, tied to the change — what your PR orphaned or revived.
+---
+
+A node is **dead** when it is not reachable from any **root**. Roots are
+entrypoints: HTTP routes, `main`, cron/worker registrations, and optionally a
+library's exported API. Reachability is a single graph traversal from the root
+set; everything not visited is dead.
+
+A text diff can never show dead code, because dead code is the **absence of an
+edge**, not a changed line.
+
+## Diff-aware (default)
+
+arch-diff already has the base and head reachable-sets, so the signal is the
+**delta**:
+
+- **Newly dead** — reachable in base, dead in head. The PR orphaned it. Example:
+  a refactor swaps `InventoryService.Reserve` out of the flow and forgets to
+  delete it. It still compiles, still has tests, looks alive in the text diff.
+  arch-diff flags it.
+- **Revived** — dead in base, reachable in head. Usually fine; occasionally a
+  sign someone resurrected code they should not have.
+
+## Full audit (`--dead`)
+
+Run reachability on HEAD only and list every dead node, grouped by layer. A
+one-shot debt report for periodic cleanup, not every PR.
+
+## What is *not* dead code
+
+- **Exported library API.** A public API has no in-repo caller by design. Set
+  `roots.exported_api: true` for library modules.
+- **Reflection / `init` side effects.** Invisible to static analysis. Add known
+  reflective entrypoints to the `keep` allowlist so they are treated as roots.
+- **Test helpers.** `_test.go` is excluded from both the dead set and the root
+  set unless configured otherwise.
+
+<Callout type="warn" title="Root misconfiguration is the main failure mode">
+  If routes are not detected as roots, half the codebase looks dead. arch-diff
+  validates that the root set is non-empty and warns loudly otherwise.
+</Callout>

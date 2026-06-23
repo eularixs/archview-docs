@@ -1,37 +1,48 @@
 ---
 title: Introduction
-description: A live architecture flow graph for Go backends, generated from your source.
+description: Arch Reactor — structural tooling for Go backends. Visualize your architecture, and diff it across commits.
 ---
 
-**archview** is a Go library that renders a live, interactive architecture flow
-graph of your backend. Mount it in `main.go`, open `/graph` in a browser, and
-watch your endpoints flow through **controller → service → repository** —
-generated automatically from your source, with no annotations.
+**Arch Reactor** is a suite of structural tooling for Go backends. It reads your
+source with a static call graph and reasons about your architecture — not your
+text. Two tools share one engine:
 
-It is framework-agnostic (net/http, gin, echo, gRPC, GraphQL) and pattern-aware
-(modular MVC, hexagonal ports & adapters, CQRS / event buses): the arrows follow
-the call graph of whatever layout you actually use. Click any node to jump
-straight to its definition in your editor.
+- **[archview](/docs/quickstart)** renders a live, interactive architecture flow
+  graph: your endpoints flowing through **controller → service → repository**,
+  generated automatically from source, with no annotations. Click any node to
+  jump to its definition.
+- **[arch-diff](/docs/arch-diff-overview)** shows how that structure *changes*
+  between two git refs: new layer-crossing calls, and the code a change
+  **orphaned** (newly dead) or **revived** — the regressions a text diff cannot
+  show.
 
-<Callout title="How is this different from go-callvis?">
-  archview builds on the same idea (a static call graph) but adds three layers
-  on top: it knows your **HTTP endpoints**, it groups functions into
-  **architectural layers**, and every node links **back to its source line**.
+<Callout title="One engine, two questions">
+  archview answers *"what does my architecture look like right now?"* arch-diff
+  answers *"what did this PR do to it?"* Both build on the same call graph, so
+  the layers, modules, and node identities mean the same thing in each.
 </Callout>
 
-## What it shows
+## archview — see the flow
 
-- **Endpoints** detected from your route registrations (gin, net/http).
+- **Endpoints** detected from your route registrations (net/http, gin, echo,
+  gRPC, GraphQL, ConnectRPC, gorilla/mux, WebSocket).
 - **Layers** — each function classified as controller / service / repository.
-- **Call edges** — controller → service → repository, resolved through
-  interfaces via a CHA call graph.
+- **Call edges** — resolved through interfaces via a CHA call graph.
 - **Modules** — grouped into swimlanes (e.g. `user`, `product`, `catalog`).
+
+## arch-diff — see the change
+
+- **Newly dead** — code your PR orphaned: reachable before, unreachable after.
+- **Layer-crossing edges** — a handler that now calls a repo directly, a service
+  hop that disappeared.
+- **Revived / changed / added / removed** nodes, keyed by location-independent
+  identity so moving lines around produces no diff.
 
 ## Next steps
 
 <Cards>
   <Card title="Quickstart" href="/docs/quickstart" description="Mount archview in three lines." />
+  <Card title="arch-diff" href="/docs/arch-diff-overview" description="Structural diff for your PRs." />
   <Card title="How it works" href="/docs/how-it-works" description="The analysis pipeline, end to end." />
-  <Card title="Outbound ports" href="/docs/ports" description="Draw the hexagonal seam." />
-  <Card title="Buses (CQRS)" href="/docs/buses" description="Recover mediator routing." />
+  <Card title="Dead code" href="/docs/arch-diff-dead-code" description="Find what a change orphaned." />
 </Cards>
