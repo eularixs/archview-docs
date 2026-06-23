@@ -17,11 +17,18 @@ Arch Reactor is two tools on one engine: **archview** (visualize) and
 - **Layer-violation linter** ([`LintLayers`](/docs/linting)).
 - **Layout persistence** — dragged positions and collapsed modules survive a
   reload (with a Reset button).
+- **Microservice view** ([`SystemView`](/docs/system-view)) — a multi-service
+  repo reads as one connected system: services as swimlanes, with cross-service
+  gRPC calls stitched across the wire as `rpc` edges.
 - Quality: trivial-helper filtering, route group-prefix joining, generated-file
   skipping (`.pb.go`, sqlc, …), layer-first module grouping.
 
 ## archview — planned
 
+- **More cross-service transports** — extend SystemView stitching beyond gRPC to
+  HTTP clients, Kafka / NATS (publish ↔ subscribe by topic), keyed the same way.
+- **Topology sources** — read Kubernetes / docker-compose manifests to enumerate
+  services and resolve HTTP targets to a service.
 - **Outbound / external detection** — surface what a repository actually talks
   to (Postgres, an HTTP API, Redis, a queue) as its own node.
 - **Search & filter** — find a node; toggle layers / modules.

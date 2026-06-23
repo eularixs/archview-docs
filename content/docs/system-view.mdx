@@ -1,0 +1,70 @@
+---
+title: Microservices (SystemView)
+description: Read a multi-service Go repo as one connected system — services as swimlanes, cross-service calls stitched across the wire.
+---
+
+A static call graph stops at the process boundary. In a microservice repo, one
+service calls another **over the wire** (gRPC, HTTP, a queue) — and that call is
+not a function call, so a plain graph shows two disconnected islands.
+
+**SystemView** stitches them back together.
+
+```go
+archview.New(archview.Options{
+  Root:       ".",
+  SystemView: true, // microservice view
+})
+```
+
+## What it does
+
+- **Services** — each `cmd/<x>` entrypoint (a `func main`) is a service, named by
+  its directory (`cmd/enricher` → `enricher`). Every function is owned by the
+  service(s) whose `main` transitively imports its package, so registration-based
+  route and RPC handlers are owned correctly (they are registered, not called).
+- **Swimlanes** — services become the lanes; the flow inside each is the usual
+  endpoint → controller → service → repository.
+- **Cross-service edges** — a call that crosses the wire is drawn as a dashed
+  teal **rpc** edge between lanes.
+
+<Callout title="Example">
+  `enricher` calls `userClient.GetUser(...)` over gRPC. SystemView draws
+  `enricher` → `(*UserServer).GetUser` in the `belajar-go` service — the link a
+  text search or a single-process call graph never shows.
+</Callout>
+
+## How stitching works
+
+Every transport reduces to the same shape: a **producer** exposes a key, a
+**consumer** references it. Stitching matches them.
+
+| Transport | Exposes (inbound) | Consumes (outbound) | Key |
+| --- | --- | --- | --- |
+| gRPC | `Register<Svc>Server` | `<Svc>Client.Method()` | `grpc:<Svc>/<Method>` |
+| HTTP | route `GET /users/:id` | client call to the path | `http:GET /users/:id` |
+| Queue | `subscribe("user.created")` | `publish("user.created")` | `kafka:user.created` |
+
+gRPC ships today (typed, recovered with full accuracy). The mechanism is a
+pluggable `link.Extractor`, so a new transport is one extractor — the stitch core
+does not change.
+
+## gRPC
+
+The server side is already an archview RPC endpoint (`Register<Svc>Server`),
+keyed by proto service and method. The client side is a method invoke on a
+generated `<Svc>Client` interface. Same key on both sides → one cross-service
+edge.
+
+## A note on Kubernetes
+
+Kubernetes (or docker-compose) is **not a transport** — services still talk over
+gRPC or HTTP underneath. Manifests are a *topology source*: they enumerate the
+services and resolve a service name to an address, which helps pin down which
+service an HTTP call targets. That is a complementary layer, planned separately,
+not a `link.Extractor`.
+
+<Callout type="warn" title="Scope">
+  SystemView surfaces the wire connections. A function only reachable over the
+  wire (and from no local endpoint) may appear as a single node for its handler;
+  the link is what matters. Off by default.
+</Callout>
