@@ -1,5 +1,5 @@
 export const appName = 'Arch Reactor';
-export const version = 'v0.6.1';
+export const version = 'v0.7.0';
 export const docsRoute = '/docs';
 export const docsImageRoute = '/og/docs';
 export const docsContentRoute = '/llms.mdx/docs';
